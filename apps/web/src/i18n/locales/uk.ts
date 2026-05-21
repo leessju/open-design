@@ -847,6 +847,7 @@ export const uk: Dict = {
   'preview.unavailableBody': 'Ця навичка створює {kind}-вивід — запустіть підказку в чаті, щоб його згенерувати.',
   'preview.showSidebar': 'Показати {label}',
   'preview.hideSidebar': 'Приховати {label}',
+  'preview.taskRunning': 'Зараз виконується завдання',
 
   'misc.savedTemplate': 'Збережений шаблон',
   'misc.primary': 'Основна',
@@ -1689,4 +1690,11 @@ export const uk: Dict = {
   'diagnostics.exporting': 'Експортування…',
   'diagnostics.exportSuccess': 'Діагностику збережено: {path}',
   'diagnostics.exportFailed': 'Не вдалося експортувати діагностику: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Передати в {editor}',
+  'handoff.open': 'Передати',
+  'handoff.chooseTarget': 'Вибрати ціль',
+  'handoff.notInstalled': 'Не встановлено',
+  'handoff.notDetected': '{editor} — не знайдено в $PATH',
+  'handoff.noEditors': 'Редакторів не знайдено в $PATH — відкриється в {target}',
 };

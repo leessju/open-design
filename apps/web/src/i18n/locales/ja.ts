@@ -712,6 +712,7 @@ export const ja: Dict = {
   'preview.unavailableBody': 'このスキルは {kind} 出力を生成します — チャットでプロンプトを実行して生成してください。',
   'preview.showSidebar': '{label} を表示',
   'preview.hideSidebar': '{label} を非表示',
+  'preview.taskRunning': '現在タスクを実行中です',
 
   'misc.savedTemplate': '保存済みテンプレート',
   'misc.primary': 'プライマリ',
@@ -1583,4 +1584,11 @@ export const ja: Dict = {
   'diagnostics.exporting': 'エクスポート中…',
   'diagnostics.exportSuccess': '診断情報を {path} に保存しました',
   'diagnostics.exportFailed': '診断情報のエクスポートに失敗しました: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': '{editor} で開く',
+  'handoff.open': '受け渡し',
+  'handoff.chooseTarget': '受け渡し先を選択',
+  'handoff.notInstalled': '未インストール',
+  'handoff.notDetected': '{editor} — $PATH に見つかりません',
+  'handoff.noEditors': '$PATH にエディターが見つかりません — {target} で開きます',
 };

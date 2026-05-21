@@ -846,6 +846,7 @@ export const ru: Dict = {
   'preview.unavailableBody': 'Этот навык создаёт {kind}-вывод — запустите запрос в чате, чтобы сгенерировать его.',
   'preview.showSidebar': 'Показать {label}',
   'preview.hideSidebar': 'Скрыть {label}',
+  'preview.taskRunning': 'Сейчас выполняется задача',
 
   'misc.savedTemplate': 'Сохраненный шаблон',
   'misc.primary': 'Основной',
@@ -1687,4 +1688,11 @@ export const ru: Dict = {
   'diagnostics.exporting': 'Экспортирование…',
   'diagnostics.exportSuccess': 'Диагностика сохранена: {path}',
   'diagnostics.exportFailed': 'Не удалось экспортировать диагностику: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Передать в {editor}',
+  'handoff.open': 'Передать',
+  'handoff.chooseTarget': 'Выбрать цель',
+  'handoff.notInstalled': 'Не установлено',
+  'handoff.notDetected': '{editor} — не найдено в $PATH',
+  'handoff.noEditors': 'Редакторы не найдены в $PATH — откроется в {target}',
 };

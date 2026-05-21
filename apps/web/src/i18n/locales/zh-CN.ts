@@ -1310,6 +1310,7 @@ export const zhCN: Dict = {
   'preview.unavailableBody': '此技能用于生成 {kind} 产物 — 请在对话中运行此 Prompt 来生成。',
   'preview.showSidebar': '展开{label}',
   'preview.hideSidebar': '收起{label}',
+  'preview.taskRunning': '当前正有任务在执行',
 
   'misc.savedTemplate': '已保存的模板',
   'misc.primary': '主体系',
@@ -2269,4 +2270,11 @@ export const zhCN: Dict = {
   'diagnostics.exporting': '导出中…',
   'diagnostics.exportSuccess': '诊断日志已保存到 {path}',
   'diagnostics.exportFailed': '导出诊断日志失败：{message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': '交付给 {editor}',
+  'handoff.open': '交付',
+  'handoff.chooseTarget': '选择交付目标',
+  'handoff.notInstalled': '未安装',
+  'handoff.notDetected': '{editor} — 未在 $PATH 中检测到',
+  'handoff.noEditors': '$PATH 中未找到编辑器 — 在 {target} 中打开',
 };

@@ -6277,7 +6277,7 @@ function HtmlViewer({
                   captureTarget={drawClickSelectionMode ? activeCommentTarget : null}
                   filePath={file.name}
                   sendDisabled={streaming}
-                  sendDisabledReason="当前正有任务在执行"
+                  sendDisabledReason={t('preview.taskRunning')}
                 >
                   <div className="artifact-preview-transport-stack">
                     <iframe

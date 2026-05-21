@@ -825,6 +825,7 @@ export const pl: Dict = {
   'preview.unavailableBody': 'Ta umiejętność tworzy {kind} wynik — uruchom prompt w czacie, aby go wygenerować.',
   'preview.showSidebar': 'Pokaż {label}',
   'preview.hideSidebar': 'Ukryj {label}',
+  'preview.taskRunning': 'Trwa wykonywanie zadania',
 
   'misc.savedTemplate': 'Zapisany szablon',
   'misc.primary': 'Główny',
@@ -1646,4 +1647,11 @@ export const pl: Dict = {
   'diagnostics.exporting': 'Eksportowanie…',
   'diagnostics.exportSuccess': 'Diagnostyka zapisana w {path}',
   'diagnostics.exportFailed': 'Nie udało się wyeksportować diagnostyki: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Przekaż do {editor}',
+  'handoff.open': 'Przekaż',
+  'handoff.chooseTarget': 'Wybierz cel',
+  'handoff.notInstalled': 'Niezainstalowane',
+  'handoff.notDetected': '{editor} — nie znaleziono w $PATH',
+  'handoff.noEditors': 'Nie znaleziono edytorów w $PATH — otwarcie w {target}',
 };

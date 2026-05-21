@@ -825,6 +825,7 @@ export const hu: Dict = {
   'preview.unavailableBody': 'Ez a skill {kind} kimenetet készít — futtasd a promptot a csevegésben egy létrehozásához.',
   'preview.showSidebar': '{label} megjelenítése',
   'preview.hideSidebar': '{label} elrejtése',
+  'preview.taskRunning': 'Egy feladat éppen fut',
 
   'misc.savedTemplate': 'Mentett sablon',
   'misc.primary': 'Elsődleges',
@@ -1656,4 +1657,11 @@ export const hu: Dict = {
   'diagnostics.exporting': 'Exportálás…',
   'diagnostics.exportSuccess': 'Diagnosztika mentve: {path}',
   'diagnostics.exportFailed': 'Diagnosztika exportálása sikertelen: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Átadás: {editor}',
+  'handoff.open': 'Átadás',
+  'handoff.chooseTarget': 'Cél kiválasztása',
+  'handoff.notInstalled': 'Nincs telepítve',
+  'handoff.notDetected': '{editor} — nem található a $PATH-ban',
+  'handoff.noEditors': 'Nem található szerkesztő a $PATH-ban — megnyitás itt: {target}',
 };

@@ -743,6 +743,7 @@ export const it: Dict = {
   'preview.unavailableBody': 'Questa competenza produce un risultato {kind} — esegui il prompt nella chat per generarne uno.',
   'preview.showSidebar': 'Mostra {label}',
   'preview.hideSidebar': 'Nascondi {label}',
+  'preview.taskRunning': "È in corso un'attività",
 
   'misc.savedTemplate': 'Modello salvato',
   'misc.primary': 'Primario',
@@ -1516,4 +1517,11 @@ export const it: Dict = {
   'liveArtifact.viewer.code.loading': 'Caricamento codice…',
   'liveArtifact.viewer.code.unavailable': 'Il codice non è ancora disponibile.',
   'liveArtifact.viewer.code.empty': 'Questo file di codice è vuoto.',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Invia a {editor}',
+  'handoff.open': 'Invia',
+  'handoff.chooseTarget': 'Scegli destinazione',
+  'handoff.notInstalled': 'Non installato',
+  'handoff.notDetected': '{editor} — non rilevato in $PATH',
+  'handoff.noEditors': 'Nessun editor trovato in $PATH — verrà aperto in {target}',
 };

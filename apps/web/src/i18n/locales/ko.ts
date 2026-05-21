@@ -825,6 +825,7 @@ export const ko: Dict = {
   'preview.unavailableBody': '이 스킬은 {kind} 출력을 생성합니다 — 채팅에서 프롬프트를 실행해 생성하세요.',
   'preview.showSidebar': '{label} 표시',
   'preview.hideSidebar': '{label} 숨기기',
+  'preview.taskRunning': '현재 작업이 실행 중입니다',
 
   'misc.savedTemplate': '저장된 템플릿',
   'misc.primary': '기본색 (Primary)',
@@ -1696,4 +1697,11 @@ export const ko: Dict = {
   'diagnostics.exporting': '내보내는 중…',
   'diagnostics.exportSuccess': '진단 정보를 {path}에 저장했습니다',
   'diagnostics.exportFailed': '진단 정보 내보내기 실패: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': '{editor}(으)로 전달',
+  'handoff.open': '전달',
+  'handoff.chooseTarget': '전달 대상 선택',
+  'handoff.notInstalled': '설치되지 않음',
+  'handoff.notDetected': '{editor} — $PATH에서 찾을 수 없음',
+  'handoff.noEditors': '$PATH에서 편집기를 찾을 수 없음 — {target}에서 엽니다',
 };

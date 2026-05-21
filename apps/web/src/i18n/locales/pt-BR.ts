@@ -846,6 +846,7 @@ export const ptBR: Dict = {
   'preview.unavailableBody': 'Esta skill produz um resultado {kind} — execute o prompt no chat para gerar um.',
   'preview.showSidebar': 'Mostrar {label}',
   'preview.hideSidebar': 'Ocultar {label}',
+  'preview.taskRunning': 'Uma tarefa está em execução',
 
   'misc.savedTemplate': 'Template salvo',
   'misc.primary': 'Principal',
@@ -1687,4 +1688,11 @@ export const ptBR: Dict = {
   'diagnostics.exporting': 'Exportando…',
   'diagnostics.exportSuccess': 'Diagnósticos salvos em {path}',
   'diagnostics.exportFailed': 'Falha ao exportar diagnósticos: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Enviar para {editor}',
+  'handoff.open': 'Enviar',
+  'handoff.chooseTarget': 'Escolher destino',
+  'handoff.notInstalled': 'Não instalado',
+  'handoff.notDetected': '{editor} — não detectado no $PATH',
+  'handoff.noEditors': 'Nenhum editor encontrado no $PATH — abrirá no {target}',
 };
