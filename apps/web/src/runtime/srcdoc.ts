@@ -31,6 +31,11 @@ export type SrcdocOptions = {
   editBridge?: boolean;
   paletteBridge?: boolean;
   initialPalette?: string | null;
+  // Hash to restore before user scripts run, so a hash-routed in-page SPA
+  // (e.g. js/spaflow.js using location.hash) shows the view the url-load
+  // preview was on instead of resetting to its default when a srcDoc-only
+  // bridge (Comment / Inspect) forces a srcDoc rebuild.
+  initialHash?: string;
 };
 
 export function buildSrcdoc(
@@ -52,7 +57,8 @@ export function buildSrcdoc(
   const withOdIds = annotateMissingOdIds(wrapped);
   const withSourcePaths = options.editBridge ? annotateManualEditSourcePaths(withOdIds) : withOdIds;
   const withBase = options.baseHref ? injectBaseHref(withSourcePaths, options.baseHref) : withSourcePaths;
-  const withShim = injectSandboxShim(withBase);
+  const withHash = options.initialHash ? injectInitialHash(withBase, options.initialHash) : withBase;
+  const withShim = injectSandboxShim(withHash);
   const withDeck = options.deck ? injectDeckBridge(withShim, options.initialSlideIndex) : withShim;
   // Comment + Inspect share an element-selection bridge: both pick a
   // [data-od-id] / [data-screen-label] node and route the host's reply
@@ -577,6 +583,23 @@ function injectBeforeBodyEnd(doc: string, payload: string): string {
 function injectBaseHref(doc: string, baseHref: string): string {
   const safeHref = escapeAttr(baseHref);
   const tag = `<base href="${safeHref}">`;
+  if (/<head[^>]*>/i.test(doc)) {
+    return doc.replace(/<head[^>]*>/i, (m) => `${m}${tag}`);
+  }
+  if (/<html[^>]*>/i.test(doc)) {
+    return doc.replace(/<html[^>]*>/i, (m) => `${m}<head>${tag}</head>`);
+  }
+  return tag + doc;
+}
+
+// Restore a URL hash before user scripts run so a hash-routed in-page SPA
+// resolves to the view the url-load preview was on (not its default) after a
+// srcDoc rebuild. Runs synchronously in <head> and re-applies on
+// DOMContentLoaded; setting location.hash also fires hashchange for routers
+// that listen for it.
+function injectInitialHash(doc: string, hash: string): string {
+  const safeHash = JSON.stringify(hash);
+  const tag = `<script>(function(){try{var h=${safeHash};if(!h)return;function set(){try{if(location.hash!==h)location.hash=h;}catch(e){}}set();document.addEventListener('DOMContentLoaded',set);}catch(e){}})();</script>`;
   if (/<head[^>]*>/i.test(doc)) {
     return doc.replace(/<head[^>]*>/i, (m) => `${m}${tag}`);
   }

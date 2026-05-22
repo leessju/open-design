@@ -3615,6 +3615,9 @@ function HtmlViewer({
   // instead of snapping back to the entry/list page.
   const [urlLoadSubPath, setUrlLoadSubPath] = useState<string | null>(null);
   const [subPageSource, setSubPageSource] = useState<string | null>(null);
+  // Latest location.hash the url-load preview reported, so a srcDoc rebuild
+  // (forced by Comment/Inspect) can restore a hash-routed SPA's current view.
+  const [urlLoadHash, setUrlLoadHash] = useState('');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const urlPreviewIframeRef = useRef<HTMLIFrameElement | null>(null);
   const srcDocPreviewIframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -4095,9 +4098,10 @@ function HtmlViewer({
     };
   }, [source, effectiveDeck, projectId, file.name, useUrlLoadPreview]);
 
-  // Reset the tracked sub-page whenever the previewed entry file changes.
+  // Reset the tracked sub-page/hash whenever the previewed entry file changes.
   useEffect(() => {
     setUrlLoadSubPath(null);
+    setUrlLoadHash('');
   }, [file.name]);
   // When a comment/inspect toggle forces the preview off the url-load path
   // while the iframe was on a sub-page, fetch that sub-page's HTML so the
@@ -4124,12 +4128,13 @@ function HtmlViewer({
       deck: effectiveDeck,
       baseHref: projectRawUrl(projectId, srcDocBaseDir),
       initialSlideIndex: htmlPreviewSlideState.get(previewStateKey)?.active ?? 0,
+      initialHash: urlLoadHash || undefined,
       selectionBridge: true,
       editBridge: manualEditMode,
       paletteBridge: true,
       initialPalette: selectedPalette,
     }) : ''),
-    [srcDocSource, srcDocBaseDir, effectiveDeck, projectId, previewStateKey, manualEditMode, selectedPalette],
+    [srcDocSource, srcDocBaseDir, effectiveDeck, projectId, previewStateKey, manualEditMode, selectedPalette, urlLoadHash],
   );
   const lazySrcDocTransport = useMemo(() => buildLazySrcdocTransport(), []);
   const [hasLazySrcDocTransport, setHasLazySrcDocTransport] = useState(useUrlLoadPreview);
@@ -4276,8 +4281,11 @@ function HtmlViewer({
     function onUrlLoadLoc(ev: MessageEvent) {
       if (!isOurPreviewIframeSource(ev.source)) return;
       if (!isActivePreviewIframeSource(ev.source)) return;
-      const data = ev.data as { type?: string; pathname?: string } | null;
+      const data = ev.data as { type?: string; pathname?: string; hash?: string } | null;
       if (!data || data.type !== 'od:url-load-loc') return;
+      // Always track the current hash — a hash-routed SPA changes view within
+      // the same file, so restore it even when the path matches the entry file.
+      setUrlLoadHash(typeof data.hash === 'string' ? data.hash : '');
       const rawPrefix = projectRawUrl(projectId, '');
       const pathname = typeof data.pathname === 'string' ? data.pathname : '';
       const idx = pathname.indexOf(rawPrefix);
