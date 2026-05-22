@@ -3549,6 +3549,12 @@ function HtmlViewer({
   const [source, setSource] = useState<string | null>(liveHtml ?? null);
   const [inlinedSource, setInlinedSource] = useState<string | null>(null);
   const [zoom, setZoom] = useState(100);
+  // Cmd/Ctrl + wheel zoom: the preview is a sandboxed iframe that swallows
+  // wheel events, so the injected preview bridge forwards the gesture to the
+  // host as an `od:zoom-wheel` message; this clamps it to the % control range.
+  const applyZoomWheel = useCallback((deltaY: number) => {
+    setZoom((z) => Math.max(25, Math.min(200, Math.round(z - deltaY * 0.25))));
+  }, []);
   const [previewViewport, setPreviewViewport] = useState<PreviewViewportId>('desktop');
   const [modeMenuOpen, setModeMenuOpen] = useState(false);
   const modeMenuRef = useRef<HTMLDivElement | null>(null);
@@ -4294,17 +4300,25 @@ function HtmlViewer({
       }
       setUrlLoadSubPath(relative);
     }
+    function onZoomWheel(ev: MessageEvent) {
+      if (!isActivePreviewIframeSource(ev.source)) return;
+      const data = ev.data as { type?: string; deltaY?: number } | null;
+      if (!data || data.type !== 'od:zoom-wheel' || typeof data.deltaY !== 'number') return;
+      applyZoomWheel(data.deltaY);
+    }
     window.addEventListener('message', onMessage);
     window.addEventListener('message', onRestoreRequest);
     window.addEventListener('message', onDcViewportMessage);
     window.addEventListener('message', onUrlLoadLoc);
+    window.addEventListener('message', onZoomWheel);
     return () => {
       window.removeEventListener('message', onMessage);
       window.removeEventListener('message', onRestoreRequest);
       window.removeEventListener('message', onDcViewportMessage);
       window.removeEventListener('message', onUrlLoadLoc);
+      window.removeEventListener('message', onZoomWheel);
     };
-  }, [isActivePreviewIframeSource, isOurPreviewIframeSource, projectId, file.name]);
+  }, [isActivePreviewIframeSource, isOurPreviewIframeSource, projectId, file.name, applyZoomWheel]);
 
   useEffect(() => {
     if (!effectiveDeck) {
