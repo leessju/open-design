@@ -318,7 +318,9 @@ export function PreviewDrawOverlay({
     const hasTarget = Boolean(captureTarget);
     const shouldCapture = hasInk || hasTarget;
     const canSubmit = shouldCapture || Boolean(note.trim());
-    if (sending || !canSubmit) return;
+    // `sendDisabled` (e.g. a run is streaming) blocks send so the localized
+    // reason surfaced on the Send button's tooltip actually holds.
+    if (sending || !canSubmit || (action === 'send' && sendDisabled)) return;
     setPendingAction(action);
     try {
       let file: File | null = null;
@@ -484,12 +486,12 @@ export function PreviewDrawOverlay({
           <button
             type="button"
             onClick={() => void send('send')}
-            disabled={sending || !canSend}
+            disabled={sending || !canSend || sendDisabled}
             title={sendDisabled ? sendDisabledReason : undefined}
             style={{
               ...pillStyle(true),
-              opacity: canSend ? 1 : 0.4,
-              cursor: sending ? 'wait' : (canSend ? 'pointer' : 'not-allowed'),
+              opacity: canSend && !sendDisabled ? 1 : 0.4,
+              cursor: sending ? 'wait' : (canSend && !sendDisabled ? 'pointer' : 'not-allowed'),
             }}
           >
             {pendingAction === 'send' ? (
