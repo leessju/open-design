@@ -1,8 +1,10 @@
-import { useId } from 'react';
+import { useId, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 
 import { selectionKindLabel, type PreviewCommentSnapshot } from '../comments';
 import type { Dict } from '../i18n/types';
+import { useEnterToSend } from '../state/useEnterToSend';
 import type { PreviewComment, PreviewCommentMember } from '../types';
+import { isImeComposing } from '../utils/imeComposing';
 
 import { Icon } from './Icon';
 
@@ -54,6 +56,23 @@ export function BoardComposerPopover({
   const podMembers = target.podMembers ?? [];
   const titleId = useId();
   const isFreePin = target.elementId.startsWith('pin-');
+  const enterToSend = useEnterToSend();
+  const composingRef = useRef(false);
+  // Send the comment (current draft + any queued notes) on the configured
+  // key: bare Enter when "Enter to send" is on, ⌘/Ctrl + Enter when off.
+  // Shift / Alt always insert a newline, and an in-progress IME composition
+  // (e.g. a Korean syllable) is never treated as a send.
+  const handleInputKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter') return;
+    if (isImeComposing(event, composingRef.current)) return;
+    const sends = enterToSend
+      ? !event.shiftKey && !event.altKey && !event.metaKey && !event.ctrlKey
+      : (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey;
+    if (!sends) return;
+    event.preventDefault();
+    if (sending || pendingCount === 0) return;
+    void onSendBatch();
+  };
   return (
     <div
       className="comment-popover"
@@ -145,6 +164,13 @@ export function BoardComposerPopover({
         aria-label={t('chat.comments.placeholder')}
         placeholder={t('chat.comments.placeholder')}
         onChange={(event) => onDraft(event.target.value)}
+        onCompositionStart={() => {
+          composingRef.current = true;
+        }}
+        onCompositionEnd={() => {
+          composingRef.current = false;
+        }}
+        onKeyDown={handleInputKeyDown}
       />
       <div className="comment-popover-actions">
         {existing ? (
