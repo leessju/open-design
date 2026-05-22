@@ -31,6 +31,11 @@ export type SrcdocOptions = {
   editBridge?: boolean;
   paletteBridge?: boolean;
   initialPalette?: string | null;
+  // Hash to restore before user scripts run, so a hash-routed in-page SPA
+  // (e.g. js/spaflow.js using location.hash) shows the view the url-load
+  // preview was on instead of resetting to its default when a srcDoc-only
+  // bridge (Comment / Inspect) forces a srcDoc rebuild.
+  initialHash?: string;
 };
 
 export function buildSrcdoc(
@@ -52,7 +57,8 @@ export function buildSrcdoc(
   const withOdIds = annotateMissingOdIds(wrapped);
   const withSourcePaths = options.editBridge ? annotateManualEditSourcePaths(withOdIds) : withOdIds;
   const withBase = options.baseHref ? injectBaseHref(withSourcePaths, options.baseHref) : withSourcePaths;
-  const withShim = injectSandboxShim(withBase);
+  const withHash = options.initialHash ? injectInitialHash(withBase, options.initialHash) : withBase;
+  const withShim = injectSandboxShim(withHash);
   const withDeck = options.deck ? injectDeckBridge(withShim, options.initialSlideIndex) : withShim;
   // Comment + Inspect share an element-selection bridge: both pick a
   // [data-od-id] / [data-screen-label] node and route the host's reply
@@ -149,6 +155,52 @@ export function canActivateSrcDocTransport(state: SrcDocActivationInputs): boole
   if (!state.shellReady) return false;
   if (state.activatedHtml === state.srcDoc) return false;
   return true;
+}
+
+export interface SrcDocSourceInputs {
+  /** Host is currently showing the URL-loaded iframe (no srcDoc needed). */
+  useUrlLoadPreview: boolean;
+  /** The sub-page the url-load iframe had navigated to, relative to the entry. */
+  urlLoadSubPath: string | null;
+  /** The entry file backing this preview (e.g. the gallery index.html). */
+  fileName: string;
+  /** Lazily-fetched HTML of `urlLoadSubPath`, or null while the fetch is in flight. */
+  subPageSource: string | null;
+  /** The entry file's own HTML. */
+  previewSource: string | null;
+}
+
+export interface SrcDocSourceDecision {
+  /** HTML the srcDoc should render, or null to keep the shell blank for now. */
+  source: string | null;
+  /** True when the resolved source is the navigated sub-page, not the entry. */
+  usingSubPage: boolean;
+  /** True when a sub-page is expected but its HTML has not arrived yet. */
+  pending: boolean;
+}
+
+/**
+ * Pure decision for which HTML the srcDoc preview should render once Comment /
+ * Inspect forces the host off the url-load path.
+ *
+ * The `pending` branch is the fix for the Comment-mode "first-page flash": a
+ * large sub-page (e.g. a 100KB admin console) reports its location and is then
+ * fetched only AFTER the active iframe has already swapped to srcDoc. During
+ * that gap `subPageSource` is still null. Falling back to `previewSource` (the
+ * entry/gallery file) would render it for those frames before snapping to the
+ * real sub-page. Returning a null source instead keeps the srcDoc shell blank
+ * (canActivateSrcDocTransport bails on empty html), so the user sees blank ->
+ * correct page rather than gallery -> correct page.
+ */
+export function selectSrcDocSource(inputs: SrcDocSourceInputs): SrcDocSourceDecision {
+  const hasSubPage =
+    !inputs.useUrlLoadPreview &&
+    !!inputs.urlLoadSubPath &&
+    inputs.urlLoadSubPath !== inputs.fileName;
+  const usingSubPage = hasSubPage && inputs.subPageSource != null;
+  const pending = hasSubPage && inputs.subPageSource == null;
+  const source = usingSubPage ? inputs.subPageSource : pending ? null : inputs.previewSource;
+  return { source, usingSubPage, pending };
 }
 
 function injectSrcdocTransportActivationBridge(doc: string): string {
@@ -586,6 +638,23 @@ function injectBaseHref(doc: string, baseHref: string): string {
   return tag + doc;
 }
 
+// Restore a URL hash before user scripts run so a hash-routed in-page SPA
+// resolves to the view the url-load preview was on (not its default) after a
+// srcDoc rebuild. Runs synchronously in <head> and re-applies on
+// DOMContentLoaded; setting location.hash also fires hashchange for routers
+// that listen for it.
+function injectInitialHash(doc: string, hash: string): string {
+  const safeHash = JSON.stringify(hash);
+  const tag = `<script>(function(){try{var h=${safeHash};if(!h)return;function set(){try{if(location.hash!==h)location.hash=h;}catch(e){}}set();document.addEventListener('DOMContentLoaded',set);}catch(e){}})();</script>`;
+  if (/<head[^>]*>/i.test(doc)) {
+    return doc.replace(/<head[^>]*>/i, (m) => `${m}${tag}`);
+  }
+  if (/<html[^>]*>/i.test(doc)) {
+    return doc.replace(/<html[^>]*>/i, (m) => `${m}<head>${tag}</head>`);
+  }
+  return tag + doc;
+}
+
 function escapeAttr(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -664,6 +733,13 @@ function injectSandboxShim(doc: string): string {
       safe && window.open(href, '_blank', 'noopener,noreferrer');
     }
   });
+  // Cmd/Ctrl + wheel forwards to the host to zoom the preview; the sandboxed
+  // iframe otherwise swallows the gesture so the host never sees it.
+  document.addEventListener('wheel', function(e){
+    if (!(e.metaKey || e.ctrlKey)) return;
+    e.preventDefault();
+    try { (window.parent || window).postMessage({ type: 'od:zoom-wheel', deltaY: e.deltaY }, '*'); } catch (_) {}
+  }, { passive: false });
 })();</script>`;
   if (/<head[^>]*>/i.test(doc))
     return doc.replace(/<head[^>]*>/i, (m) => `${m}${shim}`);

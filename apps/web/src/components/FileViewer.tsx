@@ -63,7 +63,7 @@ import {
   requestPreviewSnapshot,
 } from '../runtime/exports';
 import { buildReactComponentSrcdoc } from '../runtime/react-component';
-import { buildLazySrcdocTransport, buildSrcdoc, canActivateSrcDocTransport } from '../runtime/srcdoc';
+import { buildLazySrcdocTransport, buildSrcdoc, canActivateSrcDocTransport, selectSrcDocSource } from '../runtime/srcdoc';
 import {
   hasTweaksTemplate,
   hasUrlModeBridge,
@@ -3551,6 +3551,12 @@ function HtmlViewer({
   const [source, setSource] = useState<string | null>(liveHtml ?? null);
   const [inlinedSource, setInlinedSource] = useState<string | null>(null);
   const [zoom, setZoom] = useState(100);
+  // Cmd/Ctrl + wheel zoom: the preview is a sandboxed iframe that swallows
+  // wheel events, so the injected preview bridge forwards the gesture to the
+  // host as an `od:zoom-wheel` message; this clamps it to the % control range.
+  const applyZoomWheel = useCallback((deltaY: number) => {
+    setZoom((z) => Math.max(25, Math.min(200, Math.round(z - deltaY * 0.25))));
+  }, []);
   const [previewViewport, setPreviewViewport] = useState<PreviewViewportId>('desktop');
   const [modeMenuOpen, setModeMenuOpen] = useState(false);
   const modeMenuRef = useRef<HTMLDivElement | null>(null);
@@ -3605,6 +3611,15 @@ function HtmlViewer({
   const [manualEditFrozenSource, setManualEditFrozenSource] = useState<string | null>(null);
   const [manualEditViewportWidth, setManualEditViewportWidth] = useState<number | null>(null);
   const [previewBodyRef, previewBodySize] = usePreviewCanvasSize<HTMLDivElement>();
+  // Project-relative path of the sub-page the url-load iframe has navigated to
+  // (e.g. `screens/teacher/teacher-console.html`), or null when on the entry
+  // file. Lets a comment/inspect toggle that forces srcDoc keep the sub-page
+  // instead of snapping back to the entry/list page.
+  const [urlLoadSubPath, setUrlLoadSubPath] = useState<string | null>(null);
+  const [subPageSource, setSubPageSource] = useState<string | null>(null);
+  // Latest location.hash the url-load preview reported, so a srcDoc rebuild
+  // (forced by Comment/Inspect) can restore a hash-routed SPA's current view.
+  const [urlLoadHash, setUrlLoadHash] = useState('');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const urlPreviewIframeRef = useRef<HTMLIFrameElement | null>(null);
   const srcDocPreviewIframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -4085,17 +4100,48 @@ function HtmlViewer({
     };
   }, [source, effectiveDeck, projectId, file.name, useUrlLoadPreview]);
 
+  // Reset the tracked sub-page/hash whenever the previewed entry file changes.
+  useEffect(() => {
+    setUrlLoadSubPath(null);
+    setUrlLoadHash('');
+  }, [file.name]);
+  // When a comment/inspect toggle forces the preview off the url-load path
+  // while the iframe was on a sub-page, fetch that sub-page's HTML so the
+  // srcDoc renders the page the user was actually looking at.
+  useEffect(() => {
+    if (useUrlLoadPreview || !urlLoadSubPath || urlLoadSubPath === file.name) {
+      setSubPageSource(null);
+      return;
+    }
+    let ignore = false;
+    void fetchProjectFileText(projectId, urlLoadSubPath, { cacheBustKey: reloadKey }).then((text) => {
+      if (!ignore) setSubPageSource(text);
+    });
+    return () => {
+      ignore = true;
+    };
+  }, [useUrlLoadPreview, urlLoadSubPath, file.name, projectId, reloadKey]);
+
+  const { source: srcDocSource, usingSubPage: usingSubPageSrcDoc } = selectSrcDocSource({
+    useUrlLoadPreview,
+    urlLoadSubPath,
+    fileName: file.name,
+    subPageSource,
+    previewSource,
+  });
+  const srcDocBaseDir = baseDirFor(usingSubPageSrcDoc && urlLoadSubPath ? urlLoadSubPath : file.name);
   const srcDoc = useMemo(
-    () => (previewSource ? buildSrcdoc(previewSource, {
+    () => (srcDocSource ? buildSrcdoc(srcDocSource, {
       deck: effectiveDeck,
-      baseHref: projectRawUrl(projectId, baseDirFor(file.name)),
+      baseHref: projectRawUrl(projectId, srcDocBaseDir),
       initialSlideIndex: htmlPreviewSlideState.get(previewStateKey)?.active ?? 0,
+      initialHash: urlLoadHash || undefined,
       selectionBridge: true,
       editBridge: manualEditMode,
       paletteBridge: true,
       initialPalette: selectedPalette,
     }) : ''),
-    [previewSource, effectiveDeck, projectId, file.name, previewStateKey, manualEditMode, selectedPalette],
+    [srcDocSource, srcDocBaseDir, effectiveDeck, projectId, previewStateKey, manualEditMode, selectedPalette, urlLoadHash],
   );
   const lazySrcDocTransport = useMemo(() => buildLazySrcdocTransport(), []);
   const [hasLazySrcDocTransport, setHasLazySrcDocTransport] = useState(useUrlLoadPreview);
@@ -4239,15 +4285,60 @@ function HtmlViewer({
         }, '*');
       }
     }
+    function onUrlLoadLoc(ev: MessageEvent) {
+      // Accept location reports from the url-load iframe even when it is no
+      // longer the active preview. A large/slow sub-page (e.g. a 100KB admin
+      // console) may only report its location AFTER Comment/Inspect has already
+      // switched the active iframe to srcDoc; gating on the active iframe would
+      // drop that report and the srcDoc would snap back to the entry/list page.
+      // Only the url-load relay emits od:url-load-loc, so this stays unambiguous.
+      if (!ev.source || ev.source !== urlPreviewIframeRef.current?.contentWindow) return;
+      const data = ev.data as { type?: string; pathname?: string; hash?: string } | null;
+      if (!data || data.type !== 'od:url-load-loc') return;
+      // Always track the current hash — a hash-routed SPA changes view within
+      // the same file, so restore it even when the path matches the entry file.
+      setUrlLoadHash(typeof data.hash === 'string' ? data.hash : '');
+      const rawPrefix = projectRawUrl(projectId, '');
+      const pathname = typeof data.pathname === 'string' ? data.pathname : '';
+      const idx = pathname.indexOf(rawPrefix);
+      const relative = idx >= 0
+        ? pathname
+            .slice(idx + rawPrefix.length)
+            .split('/')
+            .map((segment) => {
+              try {
+                return decodeURIComponent(segment);
+              } catch {
+                return segment;
+              }
+            })
+            .join('/')
+        : '';
+      if (!relative || relative === file.name || !/\.html?$/i.test(relative)) {
+        setUrlLoadSubPath(null);
+        return;
+      }
+      setUrlLoadSubPath(relative);
+    }
+    function onZoomWheel(ev: MessageEvent) {
+      if (!isActivePreviewIframeSource(ev.source)) return;
+      const data = ev.data as { type?: string; deltaY?: number } | null;
+      if (!data || data.type !== 'od:zoom-wheel' || typeof data.deltaY !== 'number') return;
+      applyZoomWheel(data.deltaY);
+    }
     window.addEventListener('message', onMessage);
     window.addEventListener('message', onRestoreRequest);
     window.addEventListener('message', onDcViewportMessage);
+    window.addEventListener('message', onUrlLoadLoc);
+    window.addEventListener('message', onZoomWheel);
     return () => {
       window.removeEventListener('message', onMessage);
       window.removeEventListener('message', onRestoreRequest);
       window.removeEventListener('message', onDcViewportMessage);
+      window.removeEventListener('message', onUrlLoadLoc);
+      window.removeEventListener('message', onZoomWheel);
     };
-  }, [isActivePreviewIframeSource, isOurPreviewIframeSource]);
+  }, [isActivePreviewIframeSource, isOurPreviewIframeSource, projectId, file.name, applyZoomWheel]);
 
   useEffect(() => {
     if (!effectiveDeck) {
