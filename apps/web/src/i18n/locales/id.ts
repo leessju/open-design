@@ -939,6 +939,7 @@ export const id: Dict = {
   'preview.unavailableBody': 'Skill ini menghasilkan keluaran {kind} — jalankan prompt di chat untuk membuatnya.',
   'preview.showSidebar': 'Tampilkan {label}',
   'preview.hideSidebar': 'Sembunyikan {label}',
+  'preview.taskRunning': 'Sebuah tugas sedang berjalan',
 
   'misc.savedTemplate': 'Templat tersimpan',
   'misc.primary': 'Utama',
@@ -1694,4 +1695,11 @@ export const id: Dict = {
   'diagnostics.exporting': 'Mengekspor…',
   'diagnostics.exportSuccess': 'Diagnostik disimpan di {path}',
   'diagnostics.exportFailed': 'Gagal mengekspor diagnostik: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Serahkan ke {editor}',
+  'handoff.open': 'Serahkan',
+  'handoff.chooseTarget': 'Pilih tujuan',
+  'handoff.notInstalled': 'Belum terpasang',
+  'handoff.notDetected': '{editor} — tidak terdeteksi di $PATH',
+  'handoff.noEditors': 'Tidak ada editor di $PATH — akan dibuka di {target}',
 };

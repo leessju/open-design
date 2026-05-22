@@ -1725,6 +1725,8 @@ export interface Dict {
   'preview.unavailableBody': string;
   'preview.showSidebar': string;
   'preview.hideSidebar': string;
+  // Tooltip on the preview comment send button while a run is streaming.
+  'preview.taskRunning': string;
 
   // Misc fallback names
   'misc.savedTemplate': string;
@@ -2409,4 +2411,12 @@ export interface Dict {
   'diagnostics.exporting': string;
   'diagnostics.exportSuccess': string;
   'diagnostics.exportFailed': string;
+
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': string;
+  'handoff.open': string;
+  'handoff.chooseTarget': string;
+  'handoff.notInstalled': string;
+  'handoff.notDetected': string;
+  'handoff.noEditors': string;
 }

@@ -850,6 +850,7 @@ export const fa: Dict = {
   'preview.unavailableBody': 'این مهارت خروجی {kind} تولید می‌کند — برای ساخت یکی، پرامپت را در گفتگو اجرا کنید.',
   'preview.showSidebar': 'نمایش {label}',
   'preview.hideSidebar': 'پنهان کردن {label}',
+  'preview.taskRunning': 'یک وظیفه در حال اجراست',
 
   'misc.savedTemplate': 'قالب ذخیره شده',
   'misc.primary': 'اصلی',
@@ -1694,4 +1695,11 @@ export const fa: Dict = {
   'diagnostics.exporting': 'در حال صادر کردن…',
   'diagnostics.exportSuccess': 'تشخیص در {path} ذخیره شد',
   'diagnostics.exportFailed': 'صادر کردن تشخیص ناموفق بود: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'تحویل به {editor}',
+  'handoff.open': 'تحویل',
+  'handoff.chooseTarget': 'انتخاب مقصد',
+  'handoff.notInstalled': 'نصب‌نشده',
+  'handoff.notDetected': '{editor} — در $PATH یافت نشد',
+  'handoff.noEditors': 'هیچ ویرایشگری در $PATH یافت نشد — در {target} باز می‌شود',
 };

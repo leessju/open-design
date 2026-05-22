@@ -1414,6 +1414,7 @@ export const en: Dict = {
   'preview.unavailableBody': 'This skill produces {kind} output — run the prompt in chat to generate one.',
   'preview.showSidebar': 'Show {label}',
   'preview.hideSidebar': 'Hide {label}',
+  'preview.taskRunning': 'A task is currently running',
 
   'misc.savedTemplate': 'Saved template',
   'misc.primary': 'Primary',
@@ -2387,4 +2388,11 @@ export const en: Dict = {
   'diagnostics.exporting': 'Exporting…',
   'diagnostics.exportSuccess': 'Saved diagnostics to {path}',
   'diagnostics.exportFailed': 'Could not export diagnostics: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'Hand off to {editor}',
+  'handoff.open': 'Hand off',
+  'handoff.chooseTarget': 'Choose hand-off target',
+  'handoff.notInstalled': 'Not installed',
+  'handoff.notDetected': '{editor} — not detected on $PATH',
+  'handoff.noEditors': 'No editors found on $PATH — opens in {target}',
 };

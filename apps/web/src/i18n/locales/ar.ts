@@ -828,6 +828,7 @@ export const ar: Dict = {
   'preview.unavailableBody': 'هذه المهارة تنتج مخرجات {kind} — شغّل الأمر في المحادثة لإنشاء واحدة.',
   'preview.showSidebar': 'إظهار {label}',
   'preview.hideSidebar': 'إخفاء {label}',
+  'preview.taskRunning': 'هناك مهمة قيد التنفيذ حاليًا',
 
   'misc.savedTemplate': 'قالب محفوظ',
   'misc.primary': 'أساسي',
@@ -1652,4 +1653,11 @@ export const ar: Dict = {
   'diagnostics.exporting': 'جارٍ التصدير…',
   'diagnostics.exportSuccess': 'تم حفظ التشخيص في {path}',
   'diagnostics.exportFailed': 'تعذّر تصدير التشخيص: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'تسليم إلى {editor}',
+  'handoff.open': 'تسليم',
+  'handoff.chooseTarget': 'اختر الوجهة',
+  'handoff.notInstalled': 'غير مثبَّت',
+  'handoff.notDetected': '{editor} — غير موجود في $PATH',
+  'handoff.noEditors': 'لم يُعثر على محررات في $PATH — سيُفتح في {target}',
 };

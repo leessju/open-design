@@ -1019,6 +1019,7 @@ export const zhTW: Dict = {
   'preview.unavailableBody': '此技能用於產生 {kind} 產物 — 請在對話中執行此 Prompt 來產生。',
   'preview.showSidebar': '展開{label}',
   'preview.hideSidebar': '收合{label}',
+  'preview.taskRunning': '目前有任務正在執行',
 
   'misc.savedTemplate': '已儲存的範本',
   'misc.primary': '主系統',
@@ -1943,4 +1944,11 @@ export const zhTW: Dict = {
   'pluginCard.publishTitle': '將外掛發布為 GitHub 儲存庫',
   'pluginCard.contributeAria': '將 {title} 貢獻至 Open Design',
   'pluginCard.contributeTitle': '透過 pull request 將外掛貢獻至 Open Design',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': '交付給 {editor}',
+  'handoff.open': '交付',
+  'handoff.chooseTarget': '選擇交付目標',
+  'handoff.notInstalled': '未安裝',
+  'handoff.notDetected': '{editor} — 未在 $PATH 中偵測到',
+  'handoff.noEditors': '$PATH 中找不到編輯器 — 以 {target} 開啟',
 };

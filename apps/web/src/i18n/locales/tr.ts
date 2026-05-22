@@ -817,6 +817,7 @@ export const tr: Dict = {
   'preview.unavailableBody': 'Bu yetenek {kind} çıktısı üretir — bir tane oluşturmak için sohbette istemini çalıştırın.',
   'preview.showSidebar': '{label} göster',
   'preview.hideSidebar': '{label} gizle',
+  'preview.taskRunning': 'Şu anda bir görev çalışıyor',
 
   'misc.savedTemplate': 'Kaydedilmiş şablonlar',
   'misc.primary': 'Birincil',
@@ -1638,4 +1639,11 @@ export const tr: Dict = {
   'diagnostics.exporting': 'Dışa aktarılıyor…',
   'diagnostics.exportSuccess': 'Tanılama {path} konumuna kaydedildi',
   'diagnostics.exportFailed': 'Tanılama dışa aktarılamadı: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': '{editor} hedefine aktar',
+  'handoff.open': 'Aktar',
+  'handoff.chooseTarget': 'Hedef seç',
+  'handoff.notInstalled': 'Yüklü değil',
+  'handoff.notDetected': '{editor} — $PATH üzerinde bulunamadı',
+  'handoff.noEditors': '$PATH üzerinde düzenleyici bulunamadı — {target} ile açılır',
 };

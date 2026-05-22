@@ -778,6 +778,7 @@ export const th: Dict = {
   'preview.retry': 'ลองอีกครั้ง',
   'preview.showSidebar': 'แสดง {label}',
   'preview.hideSidebar': 'ซ่อน {label}',
+  'preview.taskRunning': 'มีงานกำลังทำงานอยู่',
 
   'misc.savedTemplate': 'เทมเพลตที่เก็บไว้',
   'misc.primary': 'หลัก',
@@ -1484,4 +1485,12 @@ export const th: Dict = {
   'settings.designSystemsCategory': 'หมวดหมู่',
   'settings.designSystemsAllCategories': 'ทุกหมวดหมู่',
   'settings.designSystemsShowInHomeGallery': 'แสดงในแกลเลอรีหน้าแรก',
+
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'ส่งต่อไปยัง {editor}',
+  'handoff.open': 'ส่งต่อ',
+  'handoff.chooseTarget': 'เลือกปลายทาง',
+  'handoff.notInstalled': 'ยังไม่ได้ติดตั้ง',
+  'handoff.notDetected': '{editor} — ไม่พบใน $PATH',
+  'handoff.noEditors': 'ไม่พบเอดิเตอร์ใน $PATH — จะเปิดใน {target}',
 };

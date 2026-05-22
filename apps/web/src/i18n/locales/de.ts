@@ -716,6 +716,7 @@ export const de: Dict = {
   'preview.unavailableBody': 'Dieser Skill erzeugt {kind}-Output — führe den Prompt im Chat aus, um etwas zu erzeugen.',
   'preview.showSidebar': '{label} einblenden',
   'preview.hideSidebar': '{label} ausblenden',
+  'preview.taskRunning': 'Es läuft gerade eine Aufgabe',
 
   'misc.savedTemplate': 'Gespeichertes Template',
   'misc.primary': 'Primär',
@@ -1589,4 +1590,11 @@ export const de: Dict = {
   'diagnostics.exporting': 'Exportiere…',
   'diagnostics.exportSuccess': 'Diagnose gespeichert: {path}',
   'diagnostics.exportFailed': 'Diagnose-Export fehlgeschlagen: {message}',
+  // Hand-off menu (open project folder in a local editor)
+  'handoff.openIn': 'An {editor} übergeben',
+  'handoff.open': 'Übergeben',
+  'handoff.chooseTarget': 'Übergabeziel wählen',
+  'handoff.notInstalled': 'Nicht installiert',
+  'handoff.notDetected': '{editor} — nicht im $PATH gefunden',
+  'handoff.noEditors': 'Keine Editoren im $PATH gefunden — wird in {target} geöffnet',
 };
