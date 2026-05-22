@@ -148,6 +148,10 @@ interface Props {
   // ChatPane). Pass `null` (or omit) to render the full rail.
   pinnedPluginId?: string | null;
   footerAccessory?: ReactNode;
+  // Composer send-key preference (Settings → General). When true, a bare
+  // Enter sends and ⌘/Ctrl + Enter inserts a newline; when false/undefined
+  // the original ⌘/Ctrl + Enter-sends behavior applies.
+  enterToSend?: boolean;
 }
 
 // Imperative handle so ancestors (e.g. example chips in ChatPane) can
@@ -205,6 +209,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
       onProjectSkillChange,
       pinnedPluginId = null,
       footerAccessory,
+      enterToSend = true,
     },
     ref
   ) {
@@ -1365,6 +1370,8 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
                   composingRef.current = false;
                 }}
                 onKeyDown={(e) => {
+                  // IME guard (macOS Korean/Japanese/… composition): Enter that
+                  // commits an in-progress syllable must not send or pick.
                   if (isImeComposing(e, composingRef.current)) return;
                   if (slash && filteredSlash.length > 0) {
                     if (e.key === 'ArrowDown') {
@@ -1395,14 +1402,51 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
                     setMention(null);
                     return;
                   }
-                  if (
-                    e.key === 'Enter' &&
-                    !e.shiftKey &&
-                    !e.altKey &&
-                    (e.metaKey || e.ctrlKey || !mention)
-                  ) {
+                  // Escape stops an in-flight run, mirroring the Stop button.
+                  // The slash / mention popovers consume Escape above, so this
+                  // only fires when neither is open.
+                  if (e.key === "Escape" && streaming) {
                     e.preventDefault();
-                    void submit();
+                    onStop();
+                    return;
+                  }
+                  if (e.key === "Enter") {
+                    // Send-key resolution honors the Settings → General
+                    // "Enter to send" preference. On (default): bare Enter sends
+                    // and ⌘/Ctrl+Enter inserts a newline. Off (legacy):
+                    // ⌘/Ctrl+Enter sends and bare Enter inserts a newline.
+                    // Shift+Enter always newlines. The slash palette already
+                    // consumed bare Enter above when it was open.
+                    const sends = enterToSend
+                      ? !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey
+                      : (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey;
+                    // Don't fire a send out from under an open @-mention
+                    // popover the user is mid-selecting.
+                    if (sends && !(enterToSend && mention)) {
+                      e.preventDefault();
+                      void submit();
+                      return;
+                    }
+                    // Enter-to-send mode: the former send combo now inserts a
+                    // newline at the caret (browsers don't newline on the
+                    // modifier combo by themselves). Skip while sending is
+                    // disabled so the keystroke stays inert, matching the
+                    // blocked-submit behavior.
+                    if (enterToSend && (e.metaKey || e.ctrlKey) && !sendDisabled) {
+                      e.preventDefault();
+                      const ta = e.currentTarget;
+                      const value = ta.value;
+                      const start = ta.selectionStart ?? value.length;
+                      const end = ta.selectionEnd ?? value.length;
+                      setDraft(value.slice(0, start) + "\n" + value.slice(end));
+                      requestAnimationFrame(() => {
+                        try {
+                          ta.selectionStart = ta.selectionEnd = start + 1;
+                        } catch {
+                          /* textarea detached before caret restore */
+                        }
+                      });
+                    }
                   }
                 }}
               />

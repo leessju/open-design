@@ -3742,6 +3742,7 @@ export function ProjectView({
               onRenameConversation={handleRenameConversation}
               onOpenSettings={onOpenSettings}
               onOpenMcpSettings={onOpenMcpSettings}
+              enterToSend={config.enterToSend ?? true}
               petConfig={config.pet}
               onAdoptPet={onAdoptPetInline}
               onTogglePet={onTogglePet}

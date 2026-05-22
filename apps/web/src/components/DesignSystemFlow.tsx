@@ -1438,6 +1438,7 @@ export function DesignSystemDetailView({
               void sendProjectChatMessage(prompt, attachments, commentAttachments);
             }}
             onStop={stopProjectChat}
+            enterToSend={config?.enterToSend ?? true}
             initialDraft={chatSeed?.text}
             conversations={conversations}
             activeConversationId={activeConversationId}
