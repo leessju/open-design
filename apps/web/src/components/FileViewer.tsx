@@ -63,7 +63,7 @@ import {
   requestPreviewSnapshot,
 } from '../runtime/exports';
 import { buildReactComponentSrcdoc } from '../runtime/react-component';
-import { buildLazySrcdocTransport, buildSrcdoc, canActivateSrcDocTransport } from '../runtime/srcdoc';
+import { buildLazySrcdocTransport, buildSrcdoc, canActivateSrcDocTransport, selectSrcDocSource } from '../runtime/srcdoc';
 import {
   hasTweaksTemplate,
   hasUrlModeBridge,
@@ -4120,9 +4120,14 @@ function HtmlViewer({
     };
   }, [useUrlLoadPreview, urlLoadSubPath, file.name, projectId, reloadKey]);
 
-  const usingSubPageSrcDoc = !useUrlLoadPreview && subPageSource != null && !!urlLoadSubPath && urlLoadSubPath !== file.name;
-  const srcDocSource = usingSubPageSrcDoc ? subPageSource : previewSource;
-  const srcDocBaseDir = usingSubPageSrcDoc ? baseDirFor(urlLoadSubPath) : baseDirFor(file.name);
+  const { source: srcDocSource, usingSubPage: usingSubPageSrcDoc } = selectSrcDocSource({
+    useUrlLoadPreview,
+    urlLoadSubPath,
+    fileName: file.name,
+    subPageSource,
+    previewSource,
+  });
+  const srcDocBaseDir = baseDirFor(usingSubPageSrcDoc && urlLoadSubPath ? urlLoadSubPath : file.name);
   const srcDoc = useMemo(
     () => (srcDocSource ? buildSrcdoc(srcDocSource, {
       deck: effectiveDeck,
