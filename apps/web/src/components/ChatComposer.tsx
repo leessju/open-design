@@ -111,11 +111,9 @@ interface Props {
   ) => void;
   onStop: () => void;
   // Optional "queue this prompt to run after the current one finishes" hook.
-  // When provided, a Queue button shows up next to Stop while a run is in
-  // flight and the textarea has draft text. Calling it should append the
-  // draft to a parent-owned queue; the composer just clears the textarea.
-  // Surfaces that don't want queuing (e.g. one-shot screenshot harnesses)
-  // can omit it — the button disappears.
+  // When provided, submitting while a run is in flight appends the draft to a
+  // parent-owned queue; the composer just clears the textarea. Surfaces that
+  // don't want queuing (e.g. one-shot screenshot harnesses) can omit it.
   onQueue?: (text: string) => void;
   // Opens the global settings dialog (CLI / model / agent picker). The
   // composer's leading gear icon routes here so users can switch models
@@ -1091,6 +1089,13 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
     async function submit() {
       const prompt = draft.trim();
       if (sendDisabled) return;
+      if (streaming) {
+        if (onQueue && prompt) {
+          onQueue(prompt);
+          setDraft('');
+        }
+        return;
+      }
       // Intercept `/pet …` and `/mcp` before sending so the slash command
       // never hits the agent — these are local UX hooks, not model prompts.
       if (tryHandlePetSlash()) return;
@@ -1103,7 +1108,6 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
       const hatched = expandHatchCommand(prompt);
       const nextCommentAttachments = currentCommentAttachments();
       if (hatched) {
-        if (streaming) return;
         setStreamingAnnotationSendPending(false);
         onSend(hatched, staged, nextCommentAttachments, contextMeta);
         reset();
@@ -1111,7 +1115,6 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
       }
       const search = researchAvailable ? expandSearchCommand(prompt) : null;
       if (search) {
-        if (streaming) return;
         setStreamingAnnotationSendPending(false);
         onSend(search.prompt, staged, nextCommentAttachments, {
           ...contextMeta,
@@ -1120,7 +1123,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
         reset();
         return;
       }
-      if ((!prompt && staged.length === 0 && nextCommentAttachments.length === 0) || streaming) return;
+      if (!prompt && staged.length === 0 && nextCommentAttachments.length === 0) return;
       sendComposedTurn(prompt, staged, nextCommentAttachments, contextMeta);
     }
 
@@ -1410,26 +1413,6 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
                     setMention(null);
                     return;
                   }
-                  // Cmd/Ctrl + Shift + Enter while a run is in flight stacks
-                  // the current draft into the Send-Queue (mirrors the
-                  // Queue button next to Stop). No-op if the surface didn't
-                  // wire onQueue or the textarea is empty.
-                  if (
-                    streaming &&
-                    onQueue &&
-                    e.key === 'Enter' &&
-                    e.shiftKey &&
-                    (e.metaKey || e.ctrlKey) &&
-                    !e.altKey
-                  ) {
-                    const text = draft.trim();
-                    if (text) {
-                      e.preventDefault();
-                      onQueue(text);
-                      setDraft('');
-                      return;
-                    }
-                  }
                   // Escape stops an in-flight run, mirroring the Stop button.
                   // The slash / mention popovers consume Escape above, so this
                   // only fires when neither is open.
@@ -1686,40 +1669,14 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
             {footerAccessory}
             <span className="composer-spacer" />
             {streaming ? (
-              <>
-                {onQueue && draft.trim() ? (
-                  // Queue this prompt to run automatically when the current
-                  // run finishes — saves the user having to Stop and resend
-                  // a follow-up they already typed. Parent owns the queue
-                  // (ChatPane), so we just forward the text and clear the
-                  // textarea. Sits to the LEFT of Stop so the primary
-                  // streaming action (Stop) keeps its trailing-edge spot
-                  // where the Send button lives during the idle state.
-                  <button
-                    type="button"
-                    className="composer-send queue"
-                    data-testid="chat-queue"
-                    title={t('chat.queueTooltip')}
-                    onClick={() => {
-                      const text = draft.trim();
-                      if (!text) return;
-                      onQueue(text);
-                      setDraft('');
-                    }}
-                  >
-                    <Icon name="queue" size={13} />
-                    <span>{t('chat.queue')}</span>
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="composer-send stop"
-                  onClick={onStop}
-                >
-                  <Icon name="stop" size={13} />
-                  <span>{t('chat.stop')}</span>
-                </button>
-              </>
+              <button
+                type="button"
+                className="composer-send stop"
+                onClick={onStop}
+              >
+                <Icon name="stop" size={13} />
+                <span>{t('chat.stop')}</span>
+              </button>
             ) : (
               <button
                 type="button"

@@ -1,12 +1,9 @@
 // @vitest-environment jsdom
 
-// Composer Send-Queue button — appears next to Stop while a run is in
-// flight and the textarea carries unsent draft text. Lets the user
-// stack the next prompt without aborting the current run; ChatPane
-// owns the queue and auto-fires the first item when streaming flips
-// false. Covers: button visibility (gated on streaming + draft),
-// click forwards draft to onQueue and clears the textarea, and the
-// non-streaming default has no Queue button at all.
+// Composer Send-Queue shortcut — while a run is in flight, the same shortcut
+// that normally submits the draft queues it instead. ChatPane owns the queue
+// and auto-fires the first item when streaming flips false. There is no
+// separate Queue button; Stop remains the only streaming action button.
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -29,86 +26,89 @@ function baseProps() {
 }
 
 function getTextarea(): HTMLTextAreaElement {
-  // ChatComposer renders exactly one textarea (the prompt input).
   return document.querySelector('textarea') as HTMLTextAreaElement;
 }
 
-describe('ChatComposer Send-Queue button', () => {
-  it('hides the Queue button when not streaming', () => {
+describe('ChatComposer Send-Queue shortcut', () => {
+  it('does not render a Queue button when not streaming', () => {
     render(<ChatComposer {...baseProps()} streaming={false} onQueue={vi.fn()} />);
     expect(screen.queryByTestId('chat-queue')).toBeNull();
   });
 
-  it('hides the Queue button while streaming if the draft is empty', () => {
-    render(<ChatComposer {...baseProps()} streaming={true} onQueue={vi.fn()} />);
-    // No draft typed yet — nothing to queue.
-    expect(screen.queryByTestId('chat-queue')).toBeNull();
-  });
-
-  it('hides the Queue button if no onQueue handler is provided (opt-in surface)', () => {
-    render(<ChatComposer {...baseProps()} streaming={true} />);
-    fireEvent.change(getTextarea(), { target: { value: 'follow-up prompt' } });
-    expect(screen.queryByTestId('chat-queue')).toBeNull();
-  });
-
-  it('shows the Queue button when streaming and the draft has text', () => {
+  it('does not render a Queue button while streaming even if the draft has text', () => {
     render(<ChatComposer {...baseProps()} streaming={true} onQueue={vi.fn()} />);
     fireEvent.change(getTextarea(), { target: { value: 'follow-up prompt' } });
-    // getByTestId throws if not found, so a successful lookup is the assertion.
-    expect(screen.getByTestId('chat-queue').tagName).toBe('BUTTON');
-  });
-
-  it('forwards the trimmed draft to onQueue and clears the textarea on click', () => {
-    const onQueue = vi.fn();
-    render(<ChatComposer {...baseProps()} streaming={true} onQueue={onQueue} />);
-    const textarea = getTextarea();
-    fireEvent.change(textarea, { target: { value: '  next thing to do  ' } });
-
-    fireEvent.click(screen.getByTestId('chat-queue'));
-
-    expect(onQueue).toHaveBeenCalledTimes(1);
-    expect(onQueue).toHaveBeenCalledWith('next thing to do');
-    expect(textarea.value).toBe('');
-    // Cleared textarea hides the button again.
     expect(screen.queryByTestId('chat-queue')).toBeNull();
   });
 
-  it('Cmd+Shift+Enter while streaming queues the draft (keyboard mirror of the button)', () => {
+  it('forwards the trimmed draft to onQueue and clears the textarea on Enter-to-send submit', () => {
     const onQueue = vi.fn();
     const onSend = vi.fn();
     render(
       <ChatComposer {...baseProps()} onSend={onSend} streaming={true} onQueue={onQueue} />,
     );
     const textarea = getTextarea();
-    fireEvent.change(textarea, { target: { value: 'follow-up via shortcut' } });
+    fireEvent.change(textarea, { target: { value: '  next thing to do  ' } });
 
     fireEvent.keyDown(textarea, {
       key: 'Enter',
-      shiftKey: true,
+    });
+
+    expect(onQueue).toHaveBeenCalledTimes(1);
+    expect(onQueue).toHaveBeenCalledWith('next thing to do');
+    expect(textarea.value).toBe('');
+    expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it('queues on Cmd/Ctrl+Enter when Enter-to-send is disabled', () => {
+    const onQueue = vi.fn();
+    const onSend = vi.fn();
+    render(
+      <ChatComposer
+        {...baseProps()}
+        onSend={onSend}
+        streaming={true}
+        onQueue={onQueue}
+        enterToSend={false}
+      />,
+    );
+    const textarea = getTextarea();
+    fireEvent.change(textarea, { target: { value: 'legacy shortcut follow-up' } });
+
+    fireEvent.keyDown(textarea, {
+      key: 'Enter',
       metaKey: true,
     });
 
     expect(onQueue).toHaveBeenCalledTimes(1);
-    expect(onQueue).toHaveBeenCalledWith('follow-up via shortcut');
+    expect(onQueue).toHaveBeenCalledWith('legacy shortcut follow-up');
     expect(textarea.value).toBe('');
-    // The shortcut must not also trigger a send — send and queue are distinct.
     expect(onSend).not.toHaveBeenCalled();
   });
 
-  it('does not queue on plain Shift+Enter (newline) or unsupported combos', () => {
+  it('does not queue while streaming if no onQueue handler is provided', () => {
+    const onSend = vi.fn();
+    render(<ChatComposer {...baseProps()} onSend={onSend} streaming={true} />);
+    const textarea = getTextarea();
+    fireEvent.change(textarea, { target: { value: '  next thing to do  ' } });
+
+    fireEvent.keyDown(textarea, {
+      key: 'Enter',
+    });
+
+    expect(onSend).not.toHaveBeenCalled();
+    expect(textarea.value).toBe('  next thing to do  ');
+  });
+
+  it('does not queue on Shift+Enter while streaming', () => {
     const onQueue = vi.fn();
     render(<ChatComposer {...baseProps()} streaming={true} onQueue={onQueue} />);
     const textarea = getTextarea();
     fireEvent.change(textarea, { target: { value: 'some text' } });
 
-    // Plain Shift+Enter is the newline shortcut; it must not queue.
-    fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: true });
-    // Alt+Cmd+Shift+Enter is not in the supported set.
     fireEvent.keyDown(textarea, {
       key: 'Enter',
       shiftKey: true,
-      metaKey: true,
-      altKey: true,
     });
 
     expect(onQueue).not.toHaveBeenCalled();
