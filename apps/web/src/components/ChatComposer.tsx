@@ -1088,7 +1088,6 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
 
     async function submit() {
       const prompt = draft.trim();
-      if (sendDisabled) return;
       if (streaming) {
         if (onQueue && prompt) {
           onQueue(prompt);
@@ -1096,6 +1095,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
         }
         return;
       }
+      if (sendDisabled) return;
       // Intercept `/pet …` and `/mcp` before sending so the slash command
       // never hits the agent — these are local UX hooks, not model prompts.
       if (tryHandlePetSlash()) return;

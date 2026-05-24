@@ -60,6 +60,31 @@ describe('ChatComposer Send-Queue shortcut', () => {
     expect(onSend).not.toHaveBeenCalled();
   });
 
+  it('queues from the submit shortcut while streaming even when normal sends are disabled', () => {
+    const onQueue = vi.fn();
+    const onSend = vi.fn();
+    render(
+      <ChatComposer
+        {...baseProps()}
+        onSend={onSend}
+        streaming={true}
+        sendDisabled={true}
+        onQueue={onQueue}
+      />,
+    );
+    const textarea = getTextarea();
+    fireEvent.change(textarea, { target: { value: '  next blocked send  ' } });
+
+    fireEvent.keyDown(textarea, {
+      key: 'Enter',
+    });
+
+    expect(onQueue).toHaveBeenCalledTimes(1);
+    expect(onQueue).toHaveBeenCalledWith('next blocked send');
+    expect(textarea.value).toBe('');
+    expect(onSend).not.toHaveBeenCalled();
+  });
+
   it('queues on Cmd/Ctrl+Enter when Enter-to-send is disabled', () => {
     const onQueue = vi.fn();
     const onSend = vi.fn();
