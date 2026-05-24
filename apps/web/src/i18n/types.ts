@@ -285,6 +285,8 @@ export interface Dict {
   'settings.generalHint': string;
   'settings.enterToSend': string;
   'settings.enterToSendHint': string;
+  'settings.queueEnabled': string;
+  'settings.queueEnabledHint': string;
   'settings.themeSystem': string;
   'settings.themeLight': string;
   'settings.themeDark': string;

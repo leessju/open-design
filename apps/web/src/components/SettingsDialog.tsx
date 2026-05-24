@@ -5760,6 +5760,7 @@ function GeneralSection({
 }) {
   const { t } = useI18n();
   const enterToSend = cfg.enterToSend ?? true;
+  const queueEnabled = cfg.queueEnabled ?? true;
   return (
     <section className="settings-section">
       <div className="settings-toggle-card">
@@ -5778,6 +5779,26 @@ function GeneralSection({
               setCfg((c) => ({ ...c, enterToSend: e.target.checked }))
             }
             aria-label={t('settings.enterToSend')}
+          />
+          <span className="toggle-slider" />
+        </label>
+      </div>
+      <div className="settings-toggle-card">
+        <span className="settings-toggle-card-icon" aria-hidden>
+          <Icon name="queue" size={14} />
+        </span>
+        <span className="settings-toggle-card-body">
+          <span className="settings-toggle-card-title">{t('settings.queueEnabled')}</span>
+          <span className="settings-toggle-card-desc">{t('settings.queueEnabledHint')}</span>
+        </span>
+        <label className="toggle-switch toggle-switch-sm" title={t('settings.queueEnabled')}>
+          <input
+            type="checkbox"
+            checked={queueEnabled}
+            onChange={(e) =>
+              setCfg((c) => ({ ...c, queueEnabled: e.target.checked }))
+            }
+            aria-label={t('settings.queueEnabled')}
           />
           <span className="toggle-slider" />
         </label>

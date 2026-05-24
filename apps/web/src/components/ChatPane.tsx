@@ -4,6 +4,7 @@ import { trackChatPanelClick } from '../analytics/events';
 import { useT } from '../i18n';
 import type { Dict } from '../i18n/types';
 import { copyToClipboard } from '../lib/copy-to-clipboard';
+import { useQueueEnabled } from '../state/useQueueEnabled';
 import { projectRawUrl } from '../providers/registry';
 import type { TodoItem } from '../runtime/todos';
 import type { AppliedPluginSnapshot } from '@open-design/contracts';
@@ -362,6 +363,7 @@ export function ChatPane({
 }: Props) {
   const t = useT();
   const analytics = useAnalytics();
+  const queueEnabled = useQueueEnabled();
   const logRef = useRef<HTMLDivElement | null>(null);
   const historyWrapRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<ChatComposerHandle | null>(null);
@@ -976,7 +978,20 @@ export function ChatPane({
                         setSendQueue((q) => q.filter((_, idx) => idx !== i));
                       }}
                     >
-                      <Icon name="close" size={11} />
+                      <svg
+                        width={14}
+                        height={14}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#374151"
+                        strokeWidth={2.4}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M20 4 4 20" />
+                        <path d="m4 4 16 16" />
+                      </svg>
                     </button>
                   </li>
                 ))}
@@ -1000,7 +1015,7 @@ export function ChatPane({
               onSend(prompt, attachments, commentAttachments, meta);
             }}
             onStop={onStop}
-            onQueue={(text) => setSendQueue((q) => [...q, text])}
+            onQueue={queueEnabled ? (text) => setSendQueue((q) => [...q, text]) : undefined}
             onOpenSettings={onOpenSettings}
             onOpenMcpSettings={onOpenMcpSettings}
             enterToSend={enterToSend}

@@ -364,6 +364,13 @@ export interface AppConfig {
   // ⌘/Ctrl + Enter sends / Enter newlines behavior applies. Unset is treated
   // as true so the default matches the composer's Enter-to-send default.
   enterToSend?: boolean;
+  // Send-Queue: when true (default) the composer shows the Queue button
+  // next to Stop while a run is in flight and Cmd/Ctrl + Shift + Enter
+  // stacks the current draft. When false the Queue button disappears
+  // and the shortcut becomes a no-op; the user must Stop and resend
+  // for a follow-up. Unset is treated as true so existing users get
+  // the feature without an opt-in.
+  queueEnabled?: boolean;
 }
 
 export interface TelemetryConfig {
